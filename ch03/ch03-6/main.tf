@@ -10,6 +10,10 @@ variable "number" {
 }
 
 variable "boolean" {
+  default = true
+}
+
+variable "list" {
   default = [
     "google",
     "vmware",
@@ -25,7 +29,7 @@ output "list_index_0" {
 output "list_all" {
   value = [
     for name in var.list :
-    upper(name)
+        upper(name)
   ]
 }
 
