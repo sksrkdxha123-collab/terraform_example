@@ -1,19 +1,24 @@
 resource "aws_instance" "aws11_jenkins_server" {
-  ami                    = var.ami_id
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  
+  ami           = var.ami_id
+  instance_type = var.instance_type
+  key_name      = var.key_name
+  root_block_device {
+    volume_size = 25
+    volume_type = "gp3"
+    delete_on_termination = true # 인스턴스 삭제 시 볼륨 도 삭제
+  }
+
   # network 모듈에서 생성한 NAT 게이트웨이와 연결된 Private Subnet 1번 사용
-  subnet_id              = data.aws_subnets.aws11_private_subnets.ids[0]
-  
+  subnet_id = data.aws_subnets.aws11_private_subnets.ids[0]
+
   # 프라이빗 망이므로 퍼블릭 IP는 할당하지 않음
   associate_public_ip_address = false
 
   vpc_security_group_ids = [
-    data.aws_security_group.aws11_ssh_sg.id, 
+    data.aws_security_group.aws11_ssh_sg.id,
     data.aws_security_group.aws11_http_sg.id
   ]
-  
+
   # data.tf (33번 라인 부근)에 정의된 인스턴스 프로파일 참조
   iam_instance_profile = data.aws_iam_instance_profile.aws11_ec2_profile.name
 
@@ -42,7 +47,7 @@ resource "aws_instance" "aws11_jenkins_server" {
               ${file("${path.module}/user_data/jenkins-in-docker-install.sh")}
               EOT
 
-              cat <<'EOT' > docker-compose.yml
+              cat <<'EOT' > docker-compose.yaml
               ${file("${path.module}/user_data/docker-compose.yaml")}
               EOT
 
