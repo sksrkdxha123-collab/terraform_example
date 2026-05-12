@@ -1,4 +1,4 @@
-# aws_infra/ec2/main.tf
+# 1. 원본 instance 생성
 resource "aws_instance" "aws11_instance" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
@@ -9,29 +9,28 @@ resource "aws_instance" "aws11_instance" {
     data.aws_security_group.aws11_ssh_sg.id,
     data.aws_security_group.aws11_http_sg.id
   ]
-  # CodeDeploy, Agent, Docker 설치
+  # CodeDeploy Agent, Docker 설치
   user_data = <<-EOF
                 #!/bin/bash
-                # CodeDeploy Agent 설치
                 sudo apt update -y
                 sudo apt install -y ruby wget
                 sudo apt install -y --reinstall ca-certificates
                 sudo update-ca-certificates --fresh
-                cd /tmp
+                cd /home/ubuntu
                 wget https://aws-codedeploy-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/latest/install
-                chmod +x install
-                ./install auto            
-                sudo apt install -y docker.io
-                sudo usermod -aG docker ubuntu
-                sudo systemctl restart docker
-                sudo systemctl enable docker        
-                ${file("${path.module}/user_data/docker-install.sh")}        
+                chmod +x ./install
+                ./install auto
+                sudo systemctl start codedeploy-agent
+                sudo systemctl enable codedeploy-agent
+
+                ${file("${path.module}/user_data/docker-install.sh")}
+                
                 EOF
   tags = {
     Name = "${var.prefix}-instance"
   }
 }
-# 2. CodeDeploy Agent, Docker 설치 대기
+# 2. Code Deploy Agent, Docker 설치 대기
 resource "null_resource" "aws11_delay" {
   provisioner "local-exec" {
     command = "sleep 180"

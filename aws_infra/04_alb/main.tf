@@ -1,5 +1,3 @@
-# aws_infra/alb/main.tf
-
 # 로드밸런스 생성
 resource "aws_lb" "aws11_alb" {
   name               = "${var.prefix}-alb"
@@ -56,8 +54,8 @@ resource "aws_lb_listener" "aws11_alb_listener" {
   load_balancer_arn = aws_lb.aws11_alb.arn
   port              = 443
   protocol          = "HTTPS"
-  ssl_policy       = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn  = var.certificate_arn
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.certificate_arn
   default_action {
     type             = "fixed-response"
     fixed_response {
@@ -82,7 +80,6 @@ resource "aws_lb_listener_rule" "aws11_alb_was_rule" {
     }
   }
 }
-
 # Jenkins 리스너 규칙
 resource "aws_lb_listener_rule" "aws11_alb_jenkins_rule" {
   listener_arn = aws_lb_listener.aws11_alb_listener.arn
